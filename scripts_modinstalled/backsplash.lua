@@ -1,8 +1,13 @@
+local root_dir = dfhack.filesystem.getcwd()
+print(root_dir)
 -- EDIT THIS IF YOU WANT TO RENAME YOUR FOLDER AND THE EXTENSION:
-local wallpaper_folder = './wallpapers'
+local wallpaper_folder_relative = '\\data\\art\\backgrounds\\'
 local img_extension = '.png' -- It is not recommended to change this
 --- TODO: Find what's the name of the applied wallpaper inside the root, to be applied
-local applied_background = 'bg.png'
+local applied_background = 'title_background.png'
+
+
+local wallpaper_folder = root_dir.. "\\".. wallpaper_folder_relative
 
 -- [[ LIBS ]] --
 
@@ -45,6 +50,20 @@ local function getFiles(dir, ext)
 
 	return files
 end
+
+local function getFiles(dir, ext)
+	local ext = ext or "."
+	local files = dfhack.filesystem.listdir(dir)
+	local filtered_files = {}
+	for _, filename in ipairs(files) do
+		-- Check if the filename ends with .png
+		if filename:match("%.png$") then
+			-- Add the .png filename to the pngFiles table
+			table.insert(filtered_files, filename)
+		end
+	end
+end
+
 -- Extracts filename and extension given any path name
 ---@param path string Path string, can be absolute or relative.
 ---@return string filename Filename
@@ -96,9 +115,14 @@ end
 
 
 -- Get the files inside root directory and folders
+
 local files_infolder = getFiles(wallpaper_folder, img_extension)
 local active_files = getFiles(wallpaper_folder, '.active')
-local files_root = getFiles('./', img_extension)
+local files_root = getFiles(root_dir, img_extension)
+
+for _, value in ipairs(files_infolder) do
+	print(value)
+end
 
 -- Reads the *.active file to preserve filename
 local active_filename = active_files[1] or tostring(math.random(1, 9999)) -- fallback
