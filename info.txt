@@ -1,0 +1,12 @@
+[ID:backsplash]
+[NUMERIC_VERSION:0100]
+[DISPLAYED_VERSION:01.00]
+[EARLIEST_COMPATIBLE_NUMERIC_VERSION:0100]
+[EARLIEST_COMPATIBLE_DISPLAYED_VERSION:01.00]
+[AUTHOR:drHyperion451]
+[NAME:BackSplash]
+[DESCRIPTION:Random main menu artwork]
+[STEAM_TITLE:BackSplash]
+[STEAM_DESCRIPTION:Random main menu artwork each time you start the game]
+[STEAM_TAG:dfhack] <-- TODO
+
