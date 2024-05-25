@@ -158,3 +158,6 @@ if #wallpaper_files ~= 0 then
 else
 	print("The wallpapers folder is empty! Please go to '", wallpaper_dir, "and fill it with PNG files. Try to match the 1920x1080 resolution if possible.")
 end
+
+-- Print empty lines, so the console is not cluttered
+print("\n")
