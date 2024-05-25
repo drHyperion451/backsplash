@@ -36,7 +36,7 @@ It should run without errors
 
 # Uninstalling this mod
 1. Delete the mod folder inside mods.
-2. Delete the `Dwarf Fortress/dfhack-config/init/dfhack_backsplash.init` if it existes.
+2. Delete the `Dwarf Fortress/dfhack-config/init/dfhack_backsplash.init` if it exists.
 3. Remove the `Dwarf Fortress/data/art/background/` directory.
 4. **IMPORTANT** Add the original `title_background.png` inside `Dwarf Fortress/data/art/`. **If there is NO title_background.png file the game will NOT run!
 
