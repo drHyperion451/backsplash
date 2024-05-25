@@ -5,8 +5,11 @@
 [EARLIEST_COMPATIBLE_DISPLAYED_VERSION:01.00]
 [AUTHOR:drHyperion451]
 [NAME:BackSplash]
-[DESCRIPTION:Random main menu artwork]
+[DESCRIPTION:Replaces the main menu artwork each time you start the game. This mods needs DFHack to work.]
 [STEAM_TITLE:BackSplash]
-[STEAM_DESCRIPTION:Random main menu artwork each time you start the game]
+[STEAM_DESCRIPTION:Replaces the main menu artwork each time you start the game.]
 [STEAM_TAG:dfhack] <-- TODO
+[STEAM_TAG:ui]
+[STEAM_TAG:graphics]
+
 

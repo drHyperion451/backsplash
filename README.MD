@@ -7,7 +7,7 @@ Changes the background main menu image from a set of custom wallpapers.
 
 
 # Disclaimer
-This mod is in beta so it will have bugs.
+This mod is in beta so it will have bugs. 
 **The adventure mode beta is not supported..yet.**
 
 # Requirements
@@ -29,7 +29,7 @@ Each time you open or close the game it will cicle randomly between all your bac
 
 ## Use DFHack command line instead of running at launch
 Follow the normal installation but do not place the .init file. Instead, open the DFHack console and run:
-
+A gui option inside DFHack is planned, but is not priority.
 
 `[DFHack]# backsplash`.
 It should run without errors
