@@ -1,12 +1,29 @@
 -- backsplash.lua
 -- Swaps the current title_background with any background inside the wallpaper_dir folder
 -- It should run before statup. This way the background would cicle between some avaliable options
+print(" \
+\
+______               _     _____         _              _     \
+| ___ \\             | |   /  ___|       | |            | |    \
+| |_/ /  __ _   ___ | | __\\ `--.  _ __  | |  __ _  ___ | |__  \
+| ___ \\ / _` | / __|| |/ / `--. \\| '_ \\ | | / _` |/ __|| '_ \\ \
+| |_/ /| (_| || (__ |   < /\\__/ /| |_) || || (_| |\\__ \\| | | |\
+\\____/  \\__,_| \\___||_|\\ _\\____/ | .__/ |_| \\__,_||___/|_| |_|\
+for Dwarf Fortress               | |                          \
+                                 |_|                          \
+\
+") --splashscreen, just because
 
 local root_dir = dfhack.filesystem.getcwd()
--- EDIT THIS IF YOU WANT TO RENAME YOUR FOLDER AND THE EXTENSION:
+
 local art_dir = root_dir .. '/data/art/'
-local wallpaper_dir_relative = 'data/art/backgrounds/'
-local wallpaper_dir = root_dir.. "/".. wallpaper_dir_relative
+
+-- EDIT THIS IF YOU WANT TO RENAME YOUR FOLDER AND THE EXTENSION:
+local wallpaper_dir_name = "backgrounds"
+
+-- TODO: When avaliable. Use dfhack.scriptmanager.getModStatePath(mod_id) to use a persistent folder, 
+-- so it will be synced with Steam Cloud
+local wallpaper_dir = root_dir.. "/data/art/".. wallpaper_dir_name .. "/"
 local applied_background = 'title_background.png'
 local img_extension = '.png' -- It is not recommended to change this
 
@@ -72,14 +89,24 @@ local function isStringInTable(table, searchString)
 end
 
 
-
-
-
--- MAIN FUNCTION
+---------- MAIN FUNCTION ------------
 
 -- Creates the 'backgrounds' folder if it does not exist
 if dfhack.filesystem.mkdir(wallpaper_dir) then
 	print("Backgrounds folder does not exist: generating...")
+	-- TODO: When it's avaliable, use dfhack.scriptmanager.getModSourcePath to copy 
+	-- the readme file that goes inside the backgrounds folder directory, instead
+	-- of putting the info with io.open and write.
+	local file = io.open(wallpaper_dir.."readme.txt", "w")
+	if file then
+		file:write("Put all your wallpapers inside this folder.\
+It should be a .png file.\
+Is it recommended to use images with no transparency and 1920x1080, but not mandatory.")
+		file:close()
+	else
+		error("Couldn't write files. Check permissions for the folder: '"..wallpaper_dir.."'")
+	end
+
 end
 
 
@@ -88,9 +115,7 @@ end
 local wallpaper_files = getFiles(wallpaper_dir, img_extension)
 local active_files = getFiles(wallpaper_dir, '.active')
 local art_files = getFiles(art_dir, img_extension)
-print("Files\n")
-printTable(art_files)
-print("-------")
+
 -- *.active file. Just the filename with no .active extension
 local dot_active = (active_files[1] or "default")..tostring(math.random(1, 9)) -- fallback
 dot_active = extractFilenameAndExtension(dot_active) --default#
@@ -100,14 +125,16 @@ print("Already applied background: "..dot_active)
 -- aka. title_background.png back to the 'backgrounds' folder.
 printTable(active_files)
 
-if isStringInTable(active_files, dot_active..".active")
-then
+if isStringInTable(active_files, dot_active..".active") then
 	print("Already an active background. Saving it to the backgrounds folder...")
 	-- This way it would preserve the filename if possible.
 	os.rename(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
 	os.remove(wallpaper_dir ..dot_active..".active") -- purge old .active file
+elseif #wallpaper_files == 0 then
+	-- If the wallpaper directory is empty do not do anything
+	print("There is not an active background and the background folder is empty. Nothing is changed")
 else
-	-- If there is no .active Save the current background with a random default#.png name
+	-- If there is no .active Save the current background with a random default#.png name. 
 	print("There is not an active background. Saving the original one. Applying one ramdomly instead from: "..wallpaper_dir)
 	os.rename(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
 end
@@ -129,6 +156,5 @@ if #wallpaper_files ~= 0 then
 	os.rename(wallpaper_dir.. "/".. dot_active .. img_extension, art_dir..applied_background)
 
 else
-	print("The wallpapers folder is empty! Please go to '", wallpaper_dir, "and fill it with\
-PNG files. Try to match the 1920x1080 resolution if possible.")
+	print("The wallpapers folder is empty! Please go to '", wallpaper_dir, "and fill it with PNG files. Try to match the 1920x1080 resolution if possible.")
 end
