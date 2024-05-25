@@ -1,15 +1,16 @@
 [ID:backsplash]
 [NUMERIC_VERSION:0100]
-[DISPLAYED_VERSION:01.00]
+[DISPLAYED_VERSION:01.0]
 [EARLIEST_COMPATIBLE_NUMERIC_VERSION:0100]
-[EARLIEST_COMPATIBLE_DISPLAYED_VERSION:01.00]
+[EARLIEST_COMPATIBLE_DISPLAYED_VERSION:01.0]
 [AUTHOR:drHyperion451]
 [NAME:BackSplash]
-[DESCRIPTION:Replaces the main menu artwork each time you start the game. This mods needs DFHack to work.]
+[DESCRIPTION:Replaces the main menu artwork ramdomly each time you launch the game. This mod needs DFHack to work. The backgrounds are inside the /data/art/backgrounds folder and you can manually add any image you like. The image must be a png. Recommended resolution is 1920x1080px.]
+
 [STEAM_TITLE:BackSplash]
 [STEAM_DESCRIPTION:Replaces the main menu artwork each time you start the game.]
-[STEAM_TAG:dfhack] <-- TODO
+[STEAM_TAG:dfhack]
+[STEAM_TAG:script]
 [STEAM_TAG:ui]
 [STEAM_TAG:graphics]
-
-
+[STEAM_CHANGELOG:Initial release]
