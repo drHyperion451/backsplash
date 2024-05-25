@@ -1,16 +1,35 @@
+-- backsplash.lua
+-- Swaps the current title_background with any background inside the wallpaper_dir folder
+-- It should run before statup. This way the background would cicle between some avaliable options
+
 local root_dir = dfhack.filesystem.getcwd()
-print(root_dir)
 -- EDIT THIS IF YOU WANT TO RENAME YOUR FOLDER AND THE EXTENSION:
-local wallpaper_folder_relative = '\\data\\art\\backgrounds\\'
-local img_extension = '.png' -- It is not recommended to change this
---- TODO: Find what's the name of the applied wallpaper inside the root, to be applied
+local art_dir = root_dir .. '/data/art/'
+local wallpaper_dir_relative = 'data/art/backgrounds/'
+local wallpaper_dir = root_dir.. "/".. wallpaper_dir_relative
 local applied_background = 'title_background.png'
+local img_extension = '.png' -- It is not recommended to change this
 
-
-local wallpaper_folder = root_dir.. "\\".. wallpaper_folder_relative
-
+print("Root directory:", root_dir)
+print("art directory:", art_dir)
+print("Wallpaper folder (absolute):", wallpaper_dir)
+print("Wallpaper folder (relative):", wallpaper_dir_relative)
+print("File extension", img_extension)
+print("Applied background file:", applied_background)
 -- [[ LIBS ]] --
-
+--- Just for keeping track of debug messages and delete it before its on release
+local function dbg_error(msg)
+	error(msg)
+end
+local function tmsg(i)
+	local i = i or 0
+	print("This line is running!", i)
+end
+local function printTable(t)
+	for _, value in ipairs(t) do
+		print(value)
+	end
+end
 -- Detecs OS. https://gist.github.com/Zbizu/43df621b3cd0dc460a76f7fe5aa87f30
 -- Posible OS: Windows, Darwin, Linux 
 local function getOS()
@@ -32,7 +51,7 @@ end
 ---Gets a list of any files.
 ---@param dir string Set the directory to be scan (e.g. './wallpapers')
 ---@param ext string Set the extension to be filter out (e.g. '.png')
-local function getFiles(dir, ext)
+local function deprecrated_getFiles(dir, ext)
 	local ext = ext or "."
 	local files = {}
 
@@ -57,29 +76,28 @@ local function getFiles(dir, ext)
 	local filtered_files = {}
 	for _, filename in ipairs(files) do
 		-- Check if the filename ends with .png
-		if filename:match("%.png$") then
-			-- Add the .png filename to the pngFiles table
-			table.insert(filtered_files, filename)
+		for file in string.gmatch(filename, ".*%"..ext.."$") do
+			table.insert(filtered_files, file)
 		end
 	end
+	return filtered_files
 end
 
 -- Extracts filename and extension given any path name
----@param path string Path string, can be absolute or relative.
+---@param filenameWithExtension string Path string, can be absolute or relative.
 ---@return string filename Filename
 ---@return string filename Extension
-local function extractFilenameAndExtension(path)
+local function extractFilenameAndExtension(filenameWithExtension) --path
     -- Find the last occurrence of '/' or '\' in the path
-    local slashIndex = path:find("[/\\][^/\\]*$")
+    --[[local slashIndex = string.find(path, "/")
 
-    -- If no slash is found, return the entire path
     if not slashIndex then
-        return path, ""
+		error("Error at function extractFilenameAndExtension(). slashIndex is nil: ")
     end
 
     -- Extract the filename with extension from the path
     local filenameWithExtension = path:sub(slashIndex + 1)
-
+	]]--
     -- Find the last occurrence of '.' in the filename
     local dotIndex = filenameWithExtension:find("%.[^%.]*$")
 
@@ -91,7 +109,6 @@ local function extractFilenameAndExtension(path)
     -- Extract the filename and extension
     local filename = filenameWithExtension:sub(1, dotIndex - 1)
     local extension = filenameWithExtension:sub(dotIndex)
-
     return filename, extension
 end
 
@@ -109,55 +126,66 @@ local function isStringInTable(table, searchString)
 	return false
 end
 
+
+
+
+
 -- MAIN FUNCTION
 
--- Change the folder dir according to OS:
+-- Creates the 'backgrounds' folder if it does not exist
+if dfhack.filesystem.mkdir(wallpaper_dir) then
+	print("Backgrounds folder does not exist: generating...")
+end
 
 
 -- Get the files inside root directory and folders
 
-local files_infolder = getFiles(wallpaper_folder, img_extension)
-local active_files = getFiles(wallpaper_folder, '.active')
-local files_root = getFiles(root_dir, img_extension)
+local wallpaper_files = getFiles(wallpaper_dir, img_extension)
+local active_files = getFiles(wallpaper_dir, '.active')
+local art_files = getFiles(art_dir, img_extension)
+print("Files\n")
+printTable(art_files)
+print("-------")
+-- *.active file. Just the filename with no .active extension
+local dot_active = (active_files[1] or "default")..tostring(math.random(1, 9)) -- fallback
+dot_active = extractFilenameAndExtension(dot_active) --default#
+print("Already applied background: "..dot_active)
 
-for _, value in ipairs(files_infolder) do
-	print(value)
-end
+-- If there's already an active background in the root folder it will move the applied background
+-- aka. title_background.png back to the 'backgrounds' folder.
+printTable(active_files)
 
--- Reads the *.active file to preserve filename
-local active_filename = active_files[1] or tostring(math.random(1, 9999)) -- fallback
-active_filename = extractFilenameAndExtension(active_filename)
-print("Already applied background: "..active_filename)
-
---- if there's already an active background in the root folder.
-if isStringInTable(files_root, ".//"..applied_background) and #files_infolder ~= 0
+if isStringInTable(active_files, dot_active..".active")
 then
-	print("Already an active background. Applying...")
-	os.rename(applied_background, wallpaper_folder.. "/"..active_filename.. img_extension)
-	os.remove(wallpaper_folder.. "/" ..active_filename..".active")
+	print("Already an active background. Saving it to the backgrounds folder...")
+	-- This way it would preserve the filename if possible.
+	--dbg_error(wallpaper_dir..dot_active.. img_extension)
+	os.rename(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
+	--assert(os.rename(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension), "Couldn't move active background file from art dir")
+	os.remove(wallpaper_dir ..dot_active..".active") -- purge old .active file
 else
-	print("Error: There is not an active background. Applying one ramdomly instead from: "..wallpaper_folder)
+	-- If there is no .active Save the current background with a random default#.png name
+	print("There is not an active background. Saving the original one. Applying one ramdomly instead from: "..wallpaper_dir)
+	os.rename(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
 end
 
-
--- Select new active filename and write it inside the background file
-if #files_infolder ~= 0 then
-	active_filename = extractFilenameAndExtension(files_infolder[math.random(1, #files_infolder)])
-	print(active_filename)
-	-- writes the new .active to preservee the filename
-	local file = io.open(wallpaper_folder.. "/" ..active_filename.. ".active", "w")
+-- Select new active filename and move it to the art/ directory, renaming it accordingly
+-- This applies the background, as the game just detects if title_background.png already exists
+if #wallpaper_files ~= 0 then
+	dot_active = extractFilenameAndExtension(wallpaper_files[math.random(1, #wallpaper_files)])
+	print(dot_active)
+	-- writes the new .active to preserve the filename of the original wallpaper
+	local file = io.open(wallpaper_dir..dot_active.. ".active", "w")
 	if file then
 		file:close()
 	else
-		error("Couldn't write files. Check permissions!")
+		error("Couldn't write files. Check permissions for the folder: '".. art_dir.."' and '"..wallpaper_dir)
 	end
 
-	print("Applying new background: ".. active_filename)
-	os.rename(wallpaper_folder.. "/".. active_filename .. img_extension, applied_background)
+	print("Applying new background: ".. dot_active)
+	os.rename(wallpaper_dir.. "/".. dot_active .. img_extension, art_dir..applied_background)
 
 else
-	print("The wallpapers folder is empty!")
+	print("The wallpapers folder is empty! Please go to '", wallpaper_dir, "and fill it with\
+PNG files. Try to match the 1920x1080 resolution if possible.")
 end
-
-
--- Gets a random file from the folder and moves it outside, renaming the file to `applied_background`
