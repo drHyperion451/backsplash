@@ -16,7 +16,7 @@ This mod is in beta so it will have bugs.
 
 # Installation
 ## Steam Workshop. 
-Not avaliable yet. It will when the mod is in a good state, I find it how to upload it and I find a cool artwork.
+The mod is currently unlisted until I find a cool logo and screenshots: https://steamcommunity.com/sharedfiles/filedetails/?id=3254169531
 
 ## Manual installation
 1. Download the latest release of this mod here: [Latest Release](https://github.com/drHyperion451/backsplash/releases/latest). Decompress the zip file into a folder called `backsplash/`
