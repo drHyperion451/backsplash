@@ -25,6 +25,7 @@ local wallpaper_dir_name = "wallpapers"
 -- so it will be synced with Steam Cloud
 local wallpaper_dir = root_dir.. "/dfhack-config/mods/backsplash/".. wallpaper_dir_name .. "/"
 local applied_background = 'title_background.png'
+local backup_wallpaper_name = 'title_background copy.png'
 local img_extension = '.png' -- It is not recommended to change this
 
 ---------- LIBS ------------
@@ -97,11 +98,13 @@ local function extractFilenameAndExtension(filenameWithExtension) --path
     local extension = filenameWithExtension:sub(dotIndex)
     return filename, extension
 end
+
 -- Copies and pastes a file. Self explanatory lol.
 ---@param source string Path of source file.
 ---@param destination string Path of destination file.
 ---@return boolean error Returns false if it couldn't copy
-function fileCopy(source, destination)
+---@return string errormsg Returns an error message if avaliable
+local function fileCopy(source, destination)
     local input_file = io.open(source, "rb")
     if not input_file then
         return false, "Could not open source file for reading"
@@ -124,12 +127,12 @@ function fileCopy(source, destination)
     if not success then
         input_file:close()
         output_file:close()
-        return false
+        return false, "couldn't write to the destination file"
     end
 
     input_file:close()
     output_file:close()
-    return true
+    return true, ""
 end
 
 ---Finds a string inside a table:
@@ -197,7 +200,7 @@ elseif #wallpaper_files == 0 then
 else
 	-- If there is no .active Save the current background with a random defauwallpaper_fileslt#.png name. 
 	print("There is not an active background. Saving the original one. Applying one ramdomly instead from: "..wallpaper_dir)
-	fileCopy(art_dir..applied_background, art_dir.."original_background.png")
+	fileCopy(art_dir..applied_background, art_dir..backup_wallpaper_name)
 	fileCopy(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
 end
 
