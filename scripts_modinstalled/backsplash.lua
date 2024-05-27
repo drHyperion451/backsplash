@@ -23,16 +23,14 @@ local wallpaper_dir_name = "wallpapers"
 
 -- TODO: When avaliable. Use dfhack.scriptmanager.getModStatePath(mod_id) to use a persistent folder, 
 -- so it will be synced with Steam Cloud
-local wallpaper_dir = root_dir.. "/data/art/".. wallpaper_dir_name .. "/"
 local wallpaper_dir = root_dir.. "/dfhack-config/mods/backsplash/".. wallpaper_dir_name .. "/"
 local applied_background = 'title_background.png'
 local img_extension = '.png' -- It is not recommended to change this
 
-
--- [[ LIBS ]] --
+---------- LIBS ------------
 --- Just for keeping track of debug messages and delete it before its on release
 local function dbg_error(msg)
-	error(msg)
+	print(msg)
 end
 
 -- Generates an empty folder recursively
@@ -57,10 +55,14 @@ local function recursive_mkdir(path)
     if dfhack.filesystem.mkdir(path) then
         return true
     else
-        return false
+		-- At the last step check if the path  was created and return false if it doesn't
+		if not dfhack.filesystem.isdir(path) then
+			return false
+		else
+			return true
+		end
     end
 end
-
 
 ---Gets a list of any files and filter by extension.
 ---@param dir string Set the directory to be scan (e.g. './wallpapers')
@@ -95,6 +97,40 @@ local function extractFilenameAndExtension(filenameWithExtension) --path
     local extension = filenameWithExtension:sub(dotIndex)
     return filename, extension
 end
+-- Copies and pastes a file. Self explanatory lol.
+---@param source string Path of source file.
+---@param destination string Path of destination file.
+---@return boolean error Returns false if it couldn't copy
+function fileCopy(source, destination)
+    local input_file = io.open(source, "rb")
+    if not input_file then
+        return false, "Could not open source file for reading"
+    end
+
+    local output_file = io.open(destination, "wb")
+    if not output_file then
+        input_file:close()
+        return false, "Could not open destination file for writing"
+    end
+
+    local content = input_file:read("*all")
+    if not content then
+        input_file:close()
+        output_file:close()
+        return false, "Could not read source file"
+    end
+
+    local success = output_file:write(content)
+    if not success then
+        input_file:close()
+        output_file:close()
+        return false
+    end
+
+    input_file:close()
+    output_file:close()
+    return true
+end
 
 ---Finds a string inside a table:
 ---@param table table
@@ -115,7 +151,7 @@ end
 
 -- Creates the 'backgrounds' folder if it does not exist
 if not dfhack.filesystem.isdir(wallpaper_dir) then
-	print("Backgrounds folder does not exist: generating...")
+	print(wallpaper_dir_name.." folder does not exist: generating...")
 	-- TODO: When it's avaliable, use dfhack.scriptmanager.getModSourcePath to copy 
 	-- the readme file that goes inside the backgrounds folder directory, instead
 	-- of putting the info with io.open and write.
@@ -130,7 +166,7 @@ if not dfhack.filesystem.isdir(wallpaper_dir) then
 				error("Couldn't write files. Check permissions for the folder: '"..wallpaper_dir.."'")
 			end
 	else		
-		print("Couldn't generate the folder. Please check folder permisions for:".. wallpaper_dir)
+		error("Couldn't generate the folder. Please check folder permisions for:".. wallpaper_dir)
 	end
 end
 
@@ -153,7 +189,7 @@ printall(active_files)
 if isStringInTable(active_files, dot_active..".active") then
 	print("Already an active background. Saving it to the backgrounds folder...")
 	-- This way it would preserve the filename if possible.
-	os.rename(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
+	fileCopy(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
 	os.remove(wallpaper_dir ..dot_active..".active") -- purge old .active file
 elseif #wallpaper_files == 0 then
 	-- If the wallpaper directory is empty do not do anything
@@ -161,7 +197,8 @@ elseif #wallpaper_files == 0 then
 else
 	-- If there is no .active Save the current background with a random defauwallpaper_fileslt#.png name. 
 	print("There is not an active background. Saving the original one. Applying one ramdomly instead from: "..wallpaper_dir)
-	os.rename(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
+	fileCopy(art_dir..applied_background, art_dir.."original_background.png")
+	fileCopy(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
 end
 
 -- Select new active filename and move it to the art/ directory, renaming it accordingly
@@ -178,7 +215,7 @@ if #wallpaper_files ~= 0 then
 	end
 
 	print("Applying new background: ".. dot_active)
-	os.rename(wallpaper_dir.. "/".. dot_active .. img_extension, art_dir..applied_background)
+	fileCopy(wallpaper_dir.. "/".. dot_active .. img_extension, art_dir..applied_background)
 
 else
 	print("The wallpapers folder is empty! Please go to '", wallpaper_dir, "and fill it with PNG files. Try to match the 1920x1080 resolution if possible.")
