@@ -14,16 +14,17 @@ for Dwarf Fortress               | |                          \
 \
 ") --splashscreen, just because
 
-local root_dir = dfhack.filesystem.getcwd()
+local root_dir = dfhack.getDFPath()
 
 local art_dir = root_dir .. '/data/art/'
 
 -- EDIT THIS IF YOU WANT TO RENAME YOUR FOLDER AND THE EXTENSION:
-local wallpaper_dir_name = "backgrounds"
+local wallpaper_dir_name = "wallpapers"
 
 -- TODO: When avaliable. Use dfhack.scriptmanager.getModStatePath(mod_id) to use a persistent folder, 
 -- so it will be synced with Steam Cloud
 local wallpaper_dir = root_dir.. "/data/art/".. wallpaper_dir_name .. "/"
+local wallpaper_dir = root_dir.. "/dfhack-config/mods/backsplash/".. wallpaper_dir_name .. "/"
 local applied_background = 'title_background.png'
 local img_extension = '.png' -- It is not recommended to change this
 
@@ -34,17 +35,38 @@ local function dbg_error(msg)
 	error(msg)
 end
 
-local function printTable(t)
-	for _, value in ipairs(t) do
-		print(value)
-	end
+-- Generates an empty folder recursively
+-- dfhack.filesystem.mkdir_recursive(path) doesn't work for some reason. So I've created this instead
+---@param path string Set the directory to be scan (e.g. './wallpapers')
+---@return boolean error Returns false if the folder can't be created
+local function recursive_mkdir(path)
+    -- Check if the directory already exists
+    if dfhack.filesystem.isdir(path) then
+        return true
+    end
+
+    -- Recursively create the parent directory
+    local parent_dir = path:match("^(.*)/") or path:match("^(.*)\\")
+    if parent_dir and not dfhack.filesystem.isdir(parent_dir) then
+        if not recursive_mkdir(parent_dir) then
+            return false
+        end
+    end
+
+    -- Create the directory
+    if dfhack.filesystem.mkdir(path) then
+        return true
+    else
+        return false
+    end
 end
+
 
 ---Gets a list of any files and filter by extension.
 ---@param dir string Set the directory to be scan (e.g. './wallpapers')
 ---@param ext string Set the extension to be filter out (e.g. '.png')
 local function getFiles(dir, ext)
-	local ext = ext or "."
+	local ext = ext or ""
 	local files = dfhack.filesystem.listdir(dir)
 	local filtered_files = {}
 	for _, filename in ipairs(files) do
@@ -92,21 +114,24 @@ end
 ---------- MAIN FUNCTION ------------
 
 -- Creates the 'backgrounds' folder if it does not exist
-if dfhack.filesystem.mkdir(wallpaper_dir) then
+if not dfhack.filesystem.isdir(wallpaper_dir) then
 	print("Backgrounds folder does not exist: generating...")
 	-- TODO: When it's avaliable, use dfhack.scriptmanager.getModSourcePath to copy 
 	-- the readme file that goes inside the backgrounds folder directory, instead
 	-- of putting the info with io.open and write.
-	local file = io.open(wallpaper_dir.."readme.txt", "w")
-	if file then
-		file:write("Put all your wallpapers inside this folder.\
-It should be a .png file.\
-Is it recommended to use images with no transparency and 1920x1080, but not mandatory.")
-		file:close()
-	else
-		error("Couldn't write files. Check permissions for the folder: '"..wallpaper_dir.."'")
+	if recursive_mkdir(wallpaper_dir) then
+			local file = io.open(wallpaper_dir.."readme.txt", "w")
+			if file then
+				file:write("Put all your wallpapers inside this folder.\
+		It should be a .png file.\
+		Is it recommended to use images with no transparency and 1920x1080, but not mandatory.")
+				file:close()
+			else
+				error("Couldn't write files. Check permissions for the folder: '"..wallpaper_dir.."'")
+			end
+	else		
+		print("Couldn't generate the folder. Please check folder permisions for:".. wallpaper_dir)
 	end
-
 end
 
 
@@ -123,7 +148,7 @@ print("Already applied background: "..dot_active)
 
 -- If there's already an active background in the root folder it will move the applied background
 -- aka. title_background.png back to the 'backgrounds' folder.
-printTable(active_files)
+printall(active_files)
 
 if isStringInTable(active_files, dot_active..".active") then
 	print("Already an active background. Saving it to the backgrounds folder...")
@@ -134,7 +159,7 @@ elseif #wallpaper_files == 0 then
 	-- If the wallpaper directory is empty do not do anything
 	print("There is not an active background and the background folder is empty. Nothing is changed")
 else
-	-- If there is no .active Save the current background with a random default#.png name. 
+	-- If there is no .active Save the current background with a random defauwallpaper_fileslt#.png name. 
 	print("There is not an active background. Saving the original one. Applying one ramdomly instead from: "..wallpaper_dir)
 	os.rename(art_dir..applied_background, wallpaper_dir..dot_active.. img_extension)
 end
